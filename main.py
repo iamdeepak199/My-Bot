@@ -1,60 +1,83 @@
+from os import system
 
 class Bot:
-    import json as json
-    from os import path as path
+    import pyautogui as pag
+    import json
+    from os import path, system
+    from sys import exit
 
     DIRECTORY = path.dirname(__file__)
-    COMANDS = {
-        'save': lambda: bot1.save(),
-        'save the json': lambda: bot1.save(),
-        'save, please': lambda: bot1.save(),
-    }
+    JSONNAME = path.join(DIRECTORY, 'data.json')
 
     def __init__(self, name):
         self.name = name
-        self.data = {
-            'hello': f"{self.name}: Hi, I'am {self.name}!",
-            'hi': f"{self.name}: Hi, I'am {self.name}!",
-        }
+        self.data = self.load()
 
 
     def talk(self, talk):
-        if Bot.COMANDS.get(talk.lower()) is not None:
-            return Bot.COMANDS[talk]()
+        COMMANDS = {
+            'open chrome': lambda: self.open_app('chrome'),
+            'open file explorer': lambda: self.open_app('explorer'),
+            'open for me': lambda: self.open_app(input(f"{self.name}: What do you want me to open?\nAnswer here: ")),
+            'open for me?': lambda: self.open_app(input(f"{self.name}: What do you want me to open?\nAnswer here: ")),
+            'disconnect': lambda: Bot.exit(0)   # type: ignore
+        }
+
+        if COMMANDS.get(talk.lower()) is not None:
+            return f"{self.name}: {COMMANDS.get(talk.lower())()}" # type: ignore
 
         if self.data.get(talk.lower()) is not None:
-            return self.data[talk]
+            return f"{self.name}: {self.data.get(talk.lower())}"
             
 
         print(f"{self.name}: I don't know this expression yet, can you teach me?")
-        answer = input("answer here: ").lower()
+        while True:
+            answer = input("answer here: ").lower()
 
-        if answer == 'no':
-            return f"{self.name}: Sorry, just wanted to learn!"
-            
-            
-        print(f'{self.name}: What do you expect me to answer?')
-        learning = input("answer here: ")
-        self.data.setdefault(talk, f"{self.name}: {learning}")
-        return f'{self.name}: Thank you for teaching me!'
+            if answer in ['no', 'not', 'non', 'nay', 'nope']:
+                return f"{self.name}: Sorry, just wanted to learn!"
+
+            if answer in ['yes','yea','yep']:
+                Bot.system('clear')  # type: ignore
+                print(f'{self.name}: What do you expect me to answer?')
+                learning = input("answer here: ")
+                self.data.setdefault(talk.lower(), learning)
+
+                self.save()
+                Bot.system('clear')  # type: ignore
+                return f'{self.name}: Thank you for teaching me!'
+
+            Bot.system('clear')  # type: ignore
+            print(f"{self.name}: I did not understand your answer. Will you teach me?")
 
 
     def save(self):
-        jsonName = Bot.path.join(Bot.DIRECTORY, f'{self.name}.json')
-        
-        with open(jsonName, 'w') as file:
-            Bot.json.dump(self.data, file, indent=2)
-        return "I'am save!"
+        with open(Bot.JSONNAME, 'w') as file:
+            Bot.json.dump(self.data, file, ensure_ascii=False, indent=2)
 
 
-    def load(self, name):
-        jsonName = Bot.path.join(Bot.DIRECTORY, f'{name}.json')
-        with open(jsonName, 'r') as file:
-            self.data = Bot.json.load(file)
+    def load(self):
+        if not Bot.path.isfile(Bot.JSONNAME):
+            return {}
+
+        with open(Bot.JSONNAME, 'r') as file:
+            data = Bot.json.load(file)
+        return data
 
 
+    def open_app(self, command):
+        Bot.pag.PAUSE = 1
+        with Bot.pag.hold('win'):
+            Bot.pag.press('r')
+        Bot.pag.write(command)
+        Bot.pag.press('Enter')
 
-bot1 = Bot('Richard')
+        return "It's opening"
+
+
+bot1 = Bot('My Bot')
 while True:
-    talk = input("answer here: ")
+    talk = input("Answer here: ")
+    system('clear')
     print(bot1.talk(talk))
+    
