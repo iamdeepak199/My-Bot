@@ -1,4 +1,5 @@
 from os import system
+from logtool import logAppend
 
 class Bot:
     import pyautogui as pag
@@ -78,6 +79,7 @@ class Bot:
 bot1 = Bot('My Bot')
 while True:
     talk = input("Answer here: ")
+    logAppend(f'User: {talk}')
     system('cls')
     print(bot1.talk(talk))
-    
+    logAppend(bot1.talk(talk))
