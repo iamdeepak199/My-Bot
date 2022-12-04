@@ -38,16 +38,16 @@ class Bot:
                 return f"{self.name}: Sorry, just wanted to learn!"
 
             if answer in ['yes','yea','yep']:
-                Bot.system('clear')  # type: ignore
+                Bot.system('cls')  # type: ignore
                 print(f'{self.name}: What do you expect me to answer?')
                 learning = input("answer here: ")
                 self.data.setdefault(talk.lower(), learning)
 
                 self.save()
-                Bot.system('clear')  # type: ignore
+                Bot.system('cls')  # type: ignore
                 return f'{self.name}: Thank you for teaching me!'
 
-            Bot.system('clear')  # type: ignore
+            Bot.system('cls')  # type: ignore
             print(f"{self.name}: I did not understand your answer. Will you teach me?")
 
 
@@ -78,6 +78,6 @@ class Bot:
 bot1 = Bot('My Bot')
 while True:
     talk = input("Answer here: ")
-    system('clear')
+    system('cls')
     print(bot1.talk(talk))
     
