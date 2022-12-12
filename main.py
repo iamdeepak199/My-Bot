@@ -4,7 +4,24 @@ from os import path, system
 from sys import exit, platform
 from logtool import logAppend
 from abc import ABC, abstractmethod
+import speech_recognition as sr
 
+def speech() -> str:
+    r = sr.Recognizer()
+    microphone = sr.Microphone()
+    with microphone as mic:
+        audio = r.listen(mic)
+        track = r.recognize_google(audio, language="pt-BR")
+        clear()
+        return track   # type: ignore
+
+
+def clear():
+    match platform:
+        case 'win32' | 'cygwin':
+            return system('cls')
+        case _:
+            return clear()
 
 class AbstractBot(ABC):
     DIRECTORY = path.dirname(__file__)
@@ -16,7 +33,7 @@ class AbstractBot(ABC):
         
     def save(self):
         with open(AbstractBot.JSONNAME, 'w') as file:
-            json.dump(self._data, file, ensure_ascii=False, indent=2)
+            json.dump(self._data, file, indent=2)
 
     def load(self):
         if not path.isfile(AbstractBot.JSONNAME):
@@ -48,21 +65,35 @@ class Bot(AbstractBot):
 
         print(f"{self.name}: I don't know this expression yet, can you teach me?")
         while True:
-            answer = input("answer here: ").lower()
+            while True:
+                try:
+                    answer = speech()
+                    clear()
+                    break
+                except sr.UnknownValueError:
+                    print(f"{self.name}: I don't know this expression yet, can you teach me?")
+                    continue
 
-            if answer in ['no', 'not', 'non', 'nay', 'nope']:
+            if answer in ['no', 'not', 'non', 'nay', 'nope', 'não']:
                 return f"{self.name}: Sorry, just wanted to learn!"
 
-            if answer in ['yes','yea','yep']:
-                system('clear')  # type: ignore
+            if answer in ['yes','yea','yep', 'sim', 'ok']:
+                clear()
                 print(f'{self.name}: What do you expect me to answer?')
-                learning = input("answer here: ")
+                while True:
+                    try:
+                        learning = speech()
+                        clear()
+                        break
+                    except sr.UnknownValueError:
+                        print(f'{self.name}: What do you expect me to answer?')
+                        continue
                 self._data.setdefault(talk.lower(), learning)
                 self.save()
-                system('clear')  # type: ignore
+                clear()
                 return f'{self.name}: Thank you for teaching me!'
 
-            system('clear')  # type: ignore
+            clear()
             print(f"{self.name}: I did not understand your answer. Will you teach me?")
 
     if platform == 'win32':
@@ -78,8 +109,16 @@ class Bot(AbstractBot):
 
 bot1 = Bot('My Bot')
 while True:
-    talk = input("Answer here: ")
+    print('Fale...')
+    while True:
+        try:
+            talk = speech()
+            clear()
+            break
+        except sr.UnknownValueError:
+            print('Fale...')
+            continue
     logAppend(f'User: {talk}')
-    system('clear')
+    clear()
     print(bot1.talk(talk))
     logAppend(bot1.talk(talk))
